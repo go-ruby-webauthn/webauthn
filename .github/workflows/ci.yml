@@ -34,10 +34,11 @@ jobs:
         env:
           CGO_ENABLED: "0"
         run: go build ./...
+      # The race detector requires cgo, so this step runs with the default
+      # toolchain. CGO-free correctness on every target is covered by the
+      # CGO_ENABLED=0 build step above and by the arch-native / arch-qemu lanes.
       - name: Test + 100% coverage gate
         shell: bash
-        env:
-          CGO_ENABLED: "0"
         run: |
           COVERPKG=$(go list ./... | paste -sd, -)
           go test -race -coverpkg="$COVERPKG" -coverprofile=cover.out ./...
