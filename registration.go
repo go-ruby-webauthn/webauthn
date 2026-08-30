@@ -91,7 +91,12 @@ func (c *RegistrationCredential) Verify(expectedChallenge []byte, opts ...Verify
 
 	sum := sha256.Sum256(c.parsed.Raw.AttestationResponse.ClientDataJSON)
 
-	if err := attestation.Verify(c.rp.ID, sum[:], cfg.userVerification, true, nil, c.rp.credentialParameters()); err != nil {
+	// v0.18.0 added an attestation policy and a signature policy. The zero
+	// value of each is the conservative default -- ECDSASignatureEncodingDefault
+	// behaves as ECDSASignatureEncodingDER, which is what the specification
+	// requires and what this call got before the parameters existed -- so
+	// passing them keeps the verification exactly as strict as it was.
+	if err := attestation.Verify(c.rp.ID, sum[:], cfg.userVerification, true, nil, c.rp.credentialParameters(), protocol.AttestationPolicy{}, protocol.SignaturePolicy{}); err != nil {
 		return AttestationStatementVerificationError.because(err)
 	}
 
